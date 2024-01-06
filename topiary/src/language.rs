@@ -65,6 +65,7 @@ impl Language {
     pub async fn grammar(&self) -> FormatterResult<tree_sitter_facade::Language> {
         Ok(match self.name.as_str() {
             "bash" => tree_sitter_bash::language(),
+            "bsv" => tree_sitter_bsv::language(),
             "json" => tree_sitter_json::language(),
             "nickel" => tree_sitter_nickel::language(),
             "ocaml" => tree_sitter_ocaml::language_ocaml(),
@@ -82,6 +83,7 @@ impl Language {
     pub async fn grammar_wasm(&self) -> FormatterResult<tree_sitter_facade::Language> {
         let language_name = match self.name.as_str() {
             "bash" => "bash",
+            "bsv" => "bsv",
             "json" => "json",
             "nickel" => "nickel",
             "ocaml" => "ocaml",
@@ -129,6 +131,7 @@ impl TryFrom<&Language> for PathBuf {
     fn try_from(language: &Language) -> FormatterResult<Self> {
         let basename = Self::from(match language.name.as_str() {
             "bash" => "bash",
+            "bsv" => "bsv",
             "json" => "json",
             "nickel" => "nickel",
             "ocaml" | "ocaml_interface" => "ocaml",
@@ -170,6 +173,7 @@ impl TryFrom<&Language> for PathBuf {
 /// instead.
 #[derive(Clone, Copy, Debug, ValueEnum)]
 pub enum SupportedLanguage {
+    Bsv,
     Json,
     Nickel,
     Ocaml,
@@ -194,6 +198,7 @@ impl SupportedLanguage {
 
     pub fn name(&self) -> &str {
         match self {
+            SupportedLanguage::Bsv => "bsv",
             SupportedLanguage::Json => "json",
             SupportedLanguage::Nickel => "nickel",
             SupportedLanguage::Ocaml => "ocaml",
