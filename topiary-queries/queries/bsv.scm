@@ -1,14 +1,211 @@
+; Sometimes we want to indicate that certain parts of our source text should
+; not be formatted, but taken as is. We use the leaf capture name to inform the
+; tool of this.
 (stringLiteral) @leaf
 
-"," @append_space
-
+; Allow blank line before
 [
-  "rule"
-  "module"
-  "<="
-  "<-"
-  "="
+  (exportDecl)
+  (importDecl)
+  (packageStmt)
+  (interfaceMemberDecl)
+  (moduleStmt)
+  "end"
+  "endmethod"
+  "endmodule"
+  "endpackage"
+  (comment)
+] @allow_blank_line_before
+
+; Append line breaks. If there is a comment following, we don't add anything,
+; because the input softlines and spaces above will already have sorted out the
+; formatting.
+(
+  [
+    (exportDecl)
+    (importDecl)
+    (packageStmt)
+    (interfaceMemberDecl)
+    (moduleStmt)
+    (functionBodyStmt)
+    (actionStmt)
+    (actionValueStmt)
+    (actionValueBlock)
+  ] @append_hardline
+  .
+  [
+    "else"
+    (comment)
+  ]* @do_nothing
+)
+
+(comment) @append_hardline
+
+; Surround spaces
+[
+  ; "BVI"
+  ; "C"
+  ; "CF"
+  ; "E"
+  ; "SB"
+  ; "SBR"
+  ; "ancestor"
+  "clocked_by"
+  "default"
+  ; "default_clock"
+  ; "default_reset"
+  "dependencies"
+  "deriving"
+  "determines"
+  ; "e"
+  ; "enable"
+  "enum"
+  ; "ifc_inout"
+  ; "inout"
+  ; "input_clock"
+  ; "input_reset"
+  "let"
+  "match"
+  "matches"
+  "numeric"
+  ; "output_clock"
+  ; "output_reset"
+  "parameter"
+  ; "path"
+  ; "port"
+  "provisos"
+  "reset_by"
+  ; "same_family"
+  ; "schedule"
+  "struct"
+  "tagged"
+  "type"
+  "union"
+  "import"
+  "export"
+  "typedef"
+  "while"
+  "for"
+  "continue"
+  "break"
+  "if"
+  "else"
+  "case"
+  "return"
+  "bit"
+  "int"
+  "void"
+  "matches"
+  "noAction"
 ] @prepend_space @append_space
+
+; Opening keywords
+[
+  "package"
+  "interface"
+  "module"
+  "method"
+  "function"
+  "rule"
+  "action"
+  "actionvalue"
+  "begin"
+  "seq"
+  "par"
+  "typeclass"
+  "instance"
+  "rules"
+] @append_space
+
+; Closing keywords
+[
+  "endpackage"
+  "endinterface"
+  "endmodule"
+  "endmethod"
+  "endfunction"
+  "endrule"
+  "endaction"
+  "endactionvalue"
+  "end"
+  "endseq"
+  "endpar"
+  "endtypeclass"
+  "endinstance"
+  "endrules"
+] @prepend_space
+
+(binaryExpr
+  binary_operator: _ @prepend_space @append_space
+)
+
+(condExpr
+  "?" @prepend_space @append_space
+  ":" @prepend_space @append_space
+)
+
+; Append spaces
+[
+  ","
+  ":"
+] @append_space
+
+(
+  (type)
+  [
+    (identifier)
+    (varInit)
+  ] @prepend_space
+)
+
+(moduleProto
+  (identifier) @append_space
+  .
+  "("
+)
+
+; Add space between if * begin
+(moduleIfStmt
+  (moduleStmt
+    (moduleBeginEndStmt) @prepend_space
+    .
+  )
+)
+
+(expressionIfStmt
+  (expressionStmt
+    (expressionBeginEndStmt) @prepend_space
+    .
+  )
+)
+
+(functionBodyIfStmt
+  (functionBodyStmt
+    (functionBodyBeginEndStmt) @prepend_space
+    .
+  )
+)
+
+(actionIfStmt
+  (actionStmt
+    (actionBeginEndStmt) @prepend_space
+    .
+  )
+)
+
+(actionValueIfStmt
+  (actionValueStmt
+    (actionValueBeginEndStmt) @prepend_space
+    .
+  )
+)
+
+; Input softlines before and after all comments. This means that the input
+; decides if a comment should have line breaks before or after. A line comment
+; always ends with a line break.
+[
+  (comment)
+] @prepend_input_softline
 
 ; Append softlines, unless followed by comments.
 (
@@ -20,38 +217,67 @@
   [(comment)]* @do_nothing
 )
 
+; Prepend space and or line break
+[
+  "<="
+  "<-"
+  "="
+] @prepend_space @append_input_softline
+
+; Indent when line break
+(
+  [
+    "="
+    "<-"
+    "="
+  ] @append_indent_start
+  _
+  ";" @prepend_indent_end
+)
+
+; Append hardline and indent
+(interfaceDecl
+  ";" @append_hardline @append_indent_start
+  _
+  "endinterface" @prepend_hardline @prepend_indent_end
+)
+
 (moduleDef
   .
   (moduleProto) @append_hardline @append_indent_start
   _
   "endmodule" @prepend_hardline @prepend_indent_end
-  .
 )
 
-(moduleProto
-  (identifier) @append_space
-  .
+(methodDef
+  ";" @append_hardline @append_indent_start
+  _
+  "endmethod" @prepend_hardline @prepend_indent_end
 )
 
-(moduleInst
+(actionBlock
   .
-  (type) @append_space
+  "action" @append_hardline @append_indent_start
+  _
+  "endaction" @prepend_hardline @prepend_indent_end
 )
 
-(varDecl
+(actionValueBlock
   .
-  (type) @append_space
+  "actionvalue" @append_hardline @append_indent_start
+  _
+  "endactionvalue" @prepend_hardline @prepend_indent_end
 )
-
-[
-  (rule)
-  (moduleStmt)
-  (actionStmt)
-] @prepend_hardline @allow_blank_line_before
 
 (rule
   ";" @append_hardline @append_indent_start
   _
   "endrule" @prepend_hardline @prepend_indent_end
-  .
+)
+
+; Match all beginEndStmts
+(
+  "begin" @append_hardline @append_indent_start
+  _
+  "end" @prepend_hardline @prepend_indent_end
 )
