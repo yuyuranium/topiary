@@ -168,6 +168,13 @@
   ":"
 ] @append_space
 
+; Remove spaces around ":" in bit truncation
+(
+  "["
+  ":" @prepend_antispace @append_antispace
+  "]"
+)
+
 (_
   (type)
   [
@@ -187,44 +194,22 @@
   ";" @prepend_indent_end @prepend_indent_end
 )
 
-; Add space between if * begin
-(moduleIfStmt
-  (moduleStmt
-    (moduleBeginEndStmt) @prepend_space
-    .
-  )
+; Add space between ")" and begin, seq, par, or action
+(")"
+  if_body: (_ (_ ["begin" "seq" "par" "action"])) @prepend_space
 )
 
-(expressionIfStmt
-  (expressionStmt
-    (expressionBeginEndStmt) @prepend_space
-    .
-  )
+(")"
+  for_body: (_ (_ ["begin" "seq" "par" "action"])) @prepend_space
 )
 
-(functionBodyIfStmt
-  (functionBodyStmt
-    (functionBodyBeginEndStmt) @prepend_space
-    .
-  )
+(")"
+  while_body: (_ (_ ["begin" "seq" "par" "action"])) @prepend_space
 )
 
-(actionIfStmt
-  (actionStmt
-    (actionBeginEndStmt) @prepend_space
-    .
-  )
-)
-
-(actionValueIfStmt
-  (actionValueStmt
-    (actionValueBeginEndStmt) @prepend_space
-    .
-  )
-)
-
-(ifFsmStmt
-  (fsmStmt) @prepend_space
+("if"
+  if_body: (_) @prepend_hardline
+  (#single_line_scope_only! "functionBodyStmt")
 )
 
 ; Input softlines before and after all comments. This means that the input
@@ -271,6 +256,12 @@
     (returnStmt) @prepend_indent_end
     .
   )
+)
+
+(_
+  "case"
+  ")" @append_hardline @append_indent_start
+  "endcase" @prepend_hardline @prepend_indent_end
 )
 
 ; Append hardline and indent
