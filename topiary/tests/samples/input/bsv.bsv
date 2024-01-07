@@ -36,7 +36,7 @@ module mkOboeFreeList (OboeFreeList);
   //   remaining entries has initial value that points to the next entry. The tag of in-use
   //   entries is assigned to its tag id.
   function Tag genInitialValue(Integer i) =
-    (i >= kNumArchRegs && i < kNumPhysicalRegs) ? fromInteger(i) + 1 : fromInteger(i);
+      (i >= kNumArchRegs && i < kNumPhysicalRegs) ? fromInteger(i) + 1 : fromInteger(i);
 
   // Object: next
   //   Vector of registers to store the next free entry.
@@ -44,22 +44,21 @@ module mkOboeFreeList (OboeFreeList);
 
   // Function: isInUse
   //   Indicate the entry pointed by the tag is in use or not.
-  function Bool isInUse(Tag tag) =
-    next[tag] == tag;
+  function Bool isInUse(Tag tag) = next[tag] == tag;
 
   // Function: markInUse
   //   Action to mark the entry as in use.
   function Action markInUse(Tag tag) =
-    action
-      next[tag] <= tag;
-    endaction;
+      action
+        next[tag] <= tag;
+      endaction;
 
   // Function: markFree
   //   Action to mark the entry as free (not in use).
   function Action markFree(Tag tag) =
-    action
-      next[tag] <= 0;
-    endaction;
+      action
+        next[tag] <= 0;
+      endaction;
 
   // Object: free_ptr
   //   Free pointer indicates the next free entry, initially points to the first free entry.

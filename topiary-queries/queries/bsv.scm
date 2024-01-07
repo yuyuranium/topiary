@@ -36,6 +36,7 @@
     (actionValueStmt)
     (attributeInstance)
     (caseExprItem)
+    (structMember)
   ] @append_hardline
   .
   [
@@ -108,6 +109,7 @@
   "void"
   "matches"
   "Action"
+  "&&&"
 ] @prepend_space @append_space
 
 ; Opening keywords
@@ -166,7 +168,7 @@
   ":"
 ] @append_space
 
-(
+(_
   (type)
   [
     (identifier)
@@ -255,9 +257,9 @@
     "="
     "<-"
     "="
-  ] @append_input_softline @append_indent_start
+  ] @append_input_softline @append_indent_start @append_indent_start
   _
-  ";" @prepend_indent_end
+  ";" @prepend_indent_end @prepend_indent_end
   .
 )
 
@@ -334,6 +336,10 @@
 )
 
 (rule
+  (ruleCond
+    "(" @append_input_softline @append_indent_start @append_indent_start
+    ")" @prepend_indent_end @prepend_indent_end
+  )? @prepend_space
   ";" @append_hardline @append_indent_start
   _
   "endrule" @prepend_hardline @prepend_indent_end
@@ -355,6 +361,33 @@
   "par" @append_hardline @append_indent_start
   _
   "endpar" @prepend_hardline @prepend_indent_end
+)
+
+(structExpr
+  (Identifier) @append_space
+  "{" @append_input_softline @append_indent_start
+  (memberBind)* @append_input_softline
+  "}" @prepend_input_softline @prepend_indent_end
+)
+
+(structPattern
+  (Identifier) @append_space
+  "{" @append_input_softline @append_indent_start
+  (identifier)* @prepend_input_softline
+  "}" @prepend_input_softline @prepend_indent_end
+)
+
+(taggedUnionExpr
+  (Identifier) @append_space
+)
+
+(taggedUnionPattern
+  (Identifier) @append_space
+)
+
+(interfaceExpr
+  ";" @append_hardline @append_indent_start
+  "endinterface" @prepend_hardline @prepend_indent_end
 )
 
 ; Match all beginEndStmts
