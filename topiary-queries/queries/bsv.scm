@@ -1,3 +1,5 @@
+(#language! bsv)
+
 ; Sometimes we want to indicate that certain parts of our source text should
 ; not be formatted, but taken as is. We use the leaf capture name to inform the
 ; tool of this.
@@ -10,6 +12,8 @@
   (packageStmt)
   (interfaceMemberDecl)
   (moduleStmt)
+  (functionBodyStmt)
+  (fsmStmt)
   "end"
   "endmethod"
   "endmodule"
@@ -30,7 +34,8 @@
     (functionBodyStmt)
     (actionStmt)
     (actionValueStmt)
-    (actionValueBlock)
+    (attributeInstance)
+    (caseExprItem)
   ] @append_hardline
   .
   [
@@ -38,6 +43,13 @@
     (comment)
   ]* @do_nothing
 )
+
+; Can either have line break or not
+[
+  (fsmStmt)
+  (actionBlock)
+  (actionValueBlock)
+] @append_input_softline @prepend_input_softline
 
 (comment) @append_hardline
 
@@ -51,7 +63,6 @@
   ; "SBR"
   ; "ancestor"
   "clocked_by"
-  "default"
   ; "default_clock"
   ; "default_reset"
   "dependencies"
@@ -79,7 +90,7 @@
   ; "schedule"
   "struct"
   "tagged"
-  "type"
+  ; "type"
   "union"
   "import"
   "export"
@@ -96,11 +107,12 @@
   "int"
   "void"
   "matches"
-  "noAction"
+  "Action"
 ] @prepend_space @append_space
 
 ; Opening keywords
 [
+  "type"
   "package"
   "interface"
   "module"
@@ -115,10 +127,13 @@
   "typeclass"
   "instance"
   "rules"
+  "(*"
 ] @append_space
 
 ; Closing keywords
 [
+  "noAction"
+  "default"
   "endpackage"
   "endinterface"
   "endmodule"
@@ -133,6 +148,7 @@
   "endtypeclass"
   "endinstance"
   "endrules"
+  "*)"
 ] @prepend_space
 
 (binaryExpr
@@ -159,9 +175,14 @@
 )
 
 (moduleProto
-  (identifier) @append_space
+  (identifier)
+  (moduleFormalParams)?
   .
-  "("
+  "(" @prepend_space
+  _?
+  ")" @append_indent_start @append_indent_start
+  _? @prepend_input_softline
+  ";" @prepend_indent_end @prepend_indent_end
 )
 
 ; Add space between if * begin
@@ -200,6 +221,10 @@
   )
 )
 
+(ifFsmStmt
+  (fsmStmt) @prepend_space
+)
+
 ; Input softlines before and after all comments. This means that the input
 ; decides if a comment should have line breaks before or after. A line comment
 ; always ends with a line break.
@@ -212,7 +237,7 @@
   [
     ","
     ";"
-  ] @append_spaced_softline
+  ] @append_spaced_softline @prepend_antispace
   .
   [(comment)]* @do_nothing
 )
@@ -222,7 +247,7 @@
   "<="
   "<-"
   "="
-] @prepend_space @append_input_softline
+] @prepend_space @append_space
 
 ; Indent when line break
 (
@@ -230,16 +255,55 @@
     "="
     "<-"
     "="
-  ] @append_indent_start
+  ] @append_input_softline @append_indent_start
   _
   ";" @prepend_indent_end
+  .
+)
+
+; Dirty
+(caseExpr
+  (caseExprItem
+    ":" @append_spaced_softline @append_indent_start
+    _
+    (returnStmt) @prepend_indent_end
+    .
+  )
 )
 
 ; Append hardline and indent
+(typedefEnum
+  "{" @append_hardline @append_indent_start
+  _
+  "}" @prepend_hardline @prepend_indent_end
+  (Identifier) @prepend_space
+)
+
+(typedefStruct
+  "{" @append_hardline @append_indent_start
+  _
+  "}" @prepend_hardline @prepend_indent_end
+  (typeDefType) @prepend_space
+)
+
+(typedefTaggedUnion
+  "{" @append_hardline @append_indent_start
+  _
+  "}" @prepend_hardline @prepend_indent_end
+  (typeDefType) @prepend_space
+)
+
 (interfaceDecl
   ";" @append_hardline @append_indent_start
   _
   "endinterface" @prepend_hardline @prepend_indent_end
+)
+
+(functionDef
+  .
+  (functionProto) @append_hardline @append_indent_start
+  _
+  "endfunction" @prepend_hardline @prepend_indent_end
 )
 
 (moduleDef
@@ -273,6 +337,24 @@
   ";" @append_hardline @append_indent_start
   _
   "endrule" @prepend_hardline @prepend_indent_end
+)
+
+(caseExpr
+  ")" @append_hardline @append_indent_start
+  _
+  "endcase" @prepend_hardline @prepend_indent_end
+)
+
+(seqFsmStmt
+  "seq" @append_hardline @append_indent_start
+  _
+  "endseq" @prepend_hardline @prepend_indent_end
+)
+
+(parFsmStmt
+  "par" @append_hardline @append_indent_start
+  _
+  "endpar" @prepend_hardline @prepend_indent_end
 )
 
 ; Match all beginEndStmts
